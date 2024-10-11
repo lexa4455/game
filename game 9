@@ -1,0 +1,911 @@
+import pygame
+import sys
+import random
+
+clock = pygame.time.Clock()
+
+# Инициализация Pygame
+pygame.init()
+
+# Определение размеров окна
+WIDTH, HEIGHT = 1200, 675
+MAX_FPS = 60
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("2D CyberCity")
+
+# Загрузка иконки
+icon = pygame.image.load("images/icon.png").convert_alpha()
+pygame.display.set_icon(icon)
+
+# Загрузка фона
+bg = pygame.image.load("bg game/bg1200x675.png").convert_alpha()
+
+pygame.mixer.init()
+bg_sound = pygame.mixer.Sound('sounds/music2.mp3')
+bg_sound.set_volume(0.3)  # Уровень громкости музыки
+bg_sound.play()
+bg_game = pygame.mixer.Sound('sounds/bg1.mp3')
+
+
+bulet_Laser = pygame.image.load("images/Laser.png").convert_alpha()
+
+bulet = pygame.mixer.Sound('sounds/8bit-gunshot-19.mp3')
+bulet.set_volume(0.2)
+hp = pygame.image.load("images/hp.png").convert_alpha()
+
+icin_bullet = pygame.image.load("images/icon-bullet.png").convert_alpha()
+
+buletreload = pygame.mixer.Sound('sounds/buletreload.mp3')
+bulet.set_volume(0.2)
+coin = pygame.image.load("images/coin.png").convert_alpha()
+
+pryjok = pygame.mixer.Sound('sounds/pryjok.mp3')
+pryjok.set_volume(0.1)
+
+coinmusic = pygame.mixer.Sound('sounds/collectcoin.mp3')
+coinmusic.set_volume(0.3)
+hp_plus = pygame.mixer.Sound('sounds/hp+.wav')
+hp_plus.set_volume(0.3)
+robot_sound = pygame.mixer.Sound('sounds/robot.mp3')
+robot_sound.set_volume(0.1)
+
+lose = pygame.mixer.Sound('sounds/loss.wav')
+Victory = pygame.mixer.Sound('sounds/Victory.mp3')
+hitrobot = pygame.mixer.Sound('sounds/hit robot.mp3')
+hitrobot.set_volume(0.1)
+Game_over = pygame.image.load("images/RIP1.png").convert_alpha()
+Victory_img = pygame.image.load("images/Victory1.png").convert_alpha()
+pauseimg = pygame.image.load("images/pause.png").convert_alpha()
+
+# Загрузка изображений фонов
+background_images = [
+    pygame.image.load("background/1.png").convert_alpha(),
+    pygame.image.load("background/2.png").convert_alpha(),
+    pygame.image.load("background/3.png").convert_alpha(),
+    pygame.image.load("background/4.png").convert_alpha(),
+    pygame.image.load("background/5.png").convert_alpha(),
+    pygame.image.load("background/6.png").convert_alpha(),
+    pygame.image.load("background/7.png").convert_alpha()
+]
+
+# Загрузка фона для начального разрешения
+main_background = pygame.image.load("images/beckgraund2.jpg")
+button_sound = pygame.mixer.Sound("Sounds/button1.wav")
+
+# Загрузка изображения здоровья (один раз)
+hp_image = pygame.image.load("images/hp.png").convert_alpha()
+icon_bullet = pygame.image.load("images/icon-bullet.png").convert_alpha()
+
+# Определение цветов
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+
+# Шрифт
+font = pygame.font.Font("fonts/boozy-2.ttf", 74)
+
+
+# Функция для отрисовки текста
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    textrect = textobj.get_rect(center=(x, y))
+    surface.blit(textobj, textrect)
+
+# Размеры спрайтов игрока
+PLAYER_WIDTH, PLAYER_HEIGHT = 64, 64
+
+# Анимации персонажа
+walk_left = [
+    pygame.transform.scale(pygame.image.load("images/player_left/player_left1.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_left/player_left2.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_left/player_left3.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_left/player_left4.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+]
+walk_right = [
+    pygame.transform.scale(pygame.image.load("images/player_right/player_right1.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_right/player_right2.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_right/player_right3.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/player_right/player_right4.png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+]
+
+player_anim_count = 0
+bg_x = 0
+
+# Загрузка анимации врагов
+robot_anim1 = [
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim (1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 2 (1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 3(1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 4 (1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 5 (1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 6 (1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 7(1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim1/Robots anim 8(1).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+]
+
+robot_anim2 = [
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim1 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim2 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim3 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim4 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim5 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim6 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim7 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+    pygame.transform.scale(pygame.image.load("images/robotanim2/Robots anim8 (2).png").convert_alpha(), (PLAYER_WIDTH, PLAYER_HEIGHT)),
+]
+
+def show_intro_scene():
+    intro_duration = 20000  # Длительность всей сцены (20 секунд)
+    start_time = pygame.time.get_ticks()  # Время старта сцены
+    background_duration = intro_duration // len(background_images)  # Время показа каждого фона
+
+    current_background_index = 0  # Начинаем с первого фона
+
+    while pygame.time.get_ticks() - start_time < intro_duration:
+        screen.fill((0, 0, 0))  # Черный фон
+
+        # Отображение текущего фона по индексу
+        screen.blit(background_images[current_background_index], (0, 0))
+
+        # Обновление экрана
+        pygame.display.update()
+
+        # Выход при нажатии на клавишу
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # Проверяем, нужно ли переключить фон
+        elapsed_time = pygame.time.get_ticks() - start_time
+        if elapsed_time // background_duration > current_background_index:
+            current_background_index += 1
+            if current_background_index >= len(background_images):
+                current_background_index = len(background_images) - 1  # Остановиться на последнем фоне
+
+    # После сцены переходим в игру
+    bg_game.play()
+    game()
+
+
+
+# Главное меню
+def main_menu():
+    volume = 0.1  # Начальный уровень громкости
+    click = False
+    while True:
+        screen.fill(WHITE)
+        screen.blit(main_background, (0, -1))
+        draw_text('2D CyberCity', font, BLACK, screen, WIDTH // 2, HEIGHT // 4)
+
+        mx, my = pygame.mouse.get_pos()
+        button_1 = pygame.Rect(WIDTH // 3, HEIGHT // 2, WIDTH // 3, 60)
+        button_2 = pygame.Rect(WIDTH // 3, HEIGHT // 2 + 70, WIDTH // 3, 60)
+        button_3 = pygame.Rect(WIDTH // 3, HEIGHT // 2 + 145, WIDTH // 3, 60)
+
+        if button_1.collidepoint((mx, my)):
+            if click:
+                button_sound.play()
+                fade()
+                bg_sound.stop()
+                show_intro_scene()  # Добавляем показ сцены перед началом игры
+
+
+        if button_2.collidepoint((mx, my)):
+            if click:
+                button_sound.play()
+                fade()
+                settings_menu()
+        if button_3.collidepoint((mx, my)):
+            if click:
+                button_sound.play()
+                pygame.quit()
+                sys.exit()
+
+        pygame.draw.rect(screen, BLACK, button_1)
+        pygame.draw.rect(screen, BLACK, button_2)
+        pygame.draw.rect(screen, BLACK, button_3)
+
+        draw_text('Start Game', font, WHITE, screen, button_1.centerx, button_1.centery)
+        draw_text('Settings', font, WHITE, screen, button_2.centerx, button_2.centery)
+        draw_text('Quit', font, WHITE, screen, button_3.centerx, button_3.centery)
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        pygame.display.update()
+
+
+# Меню настроек
+def settings_menu():
+    button_4 = pygame.Rect(WIDTH // 3, HEIGHT // 3, WIDTH // 3, 60)
+    button_5 = pygame.Rect(WIDTH // 3, HEIGHT // 2, WIDTH // 3, 60)
+    button_6 = pygame.Rect(WIDTH // 3, HEIGHT // 2 + 70, WIDTH // 3, 60)
+    button_7 = pygame.Rect(WIDTH // 3, HEIGHT // 2 + 145, WIDTH // 3, 60)
+
+    running = True
+    while running:
+        screen.fill(WHITE)
+        screen.blit(main_background, (0, -1))
+        draw_text('Settings', font, BLACK, screen, WIDTH // 2, HEIGHT // 10)
+
+        pygame.draw.rect(screen, BLACK, button_4)
+        pygame.draw.rect(screen, BLACK, button_5)
+        pygame.draw.rect(screen, BLACK, button_6)
+        pygame.draw.rect(screen, BLACK, button_7)
+
+        draw_text('Control', font, WHITE, screen, button_4.centerx, button_4.centery)
+        draw_text('Audio', font, WHITE, screen, button_5.centerx, button_5.centery)
+        draw_text('Video', font, WHITE, screen, button_6.centerx, button_6.centery)
+        draw_text('Quit', font, WHITE, screen, button_7.centerx, button_7.centery)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    fade()
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if button_4.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    control_settings_menu()
+                if button_5.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    audio_settings_menu()
+                if button_6.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    video_settings_menu()
+                if button_7.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    running = False
+
+        pygame.display.flip()
+
+
+# Меню настроек аудио
+def audio_settings_menu():
+    # Створюємо кнопки для управління гучністю та ввімкнення/вимкнення музики
+    button_volume_up = pygame.Rect(WIDTH // 3, HEIGHT // 3, WIDTH // 3, 60)
+    button_volume_down = pygame.Rect(WIDTH // 3, HEIGHT // 3 + 70, WIDTH // 3, 60)
+    button_toggle_mute = pygame.Rect(WIDTH // 3, HEIGHT // 3 + 140, WIDTH // 3, 60)
+    button_back = pygame.Rect(WIDTH // 3, HEIGHT // 3 + 210, WIDTH // 3, 60)
+
+    is_muted = False  # Статус вимкнення звуку
+    current_volume = bg_sound.get_volume()
+
+    running = True
+    while running:
+        screen.fill(WHITE)
+        screen.blit(main_background, (0, -1))
+        draw_text('Audio Settings', font, BLACK, screen, WIDTH // 2, HEIGHT // 10)
+
+        pygame.draw.rect(screen, BLACK, button_volume_up)
+        pygame.draw.rect(screen, BLACK, button_volume_down)
+        pygame.draw.rect(screen, BLACK, button_toggle_mute)
+        pygame.draw.rect(screen, BLACK, button_back)
+
+        draw_text('Volume Up', font, WHITE, screen, button_volume_up.centerx, button_volume_up.centery)
+        draw_text('Volume Down', font, WHITE, screen, button_volume_down.centerx, button_volume_down.centery)
+        draw_text('Mute/Unmute', font, WHITE, screen, button_toggle_mute.centerx, button_toggle_mute.centery)
+        draw_text('Back', font, WHITE, screen, button_back.centerx, button_back.centery)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if button_volume_up.collidepoint(event.pos):
+                    current_volume = min(1.0, current_volume + 0.1)  # Збільшуємо гучність, максимум 1.0
+                    bg_sound.set_volume(current_volume)
+                if button_volume_down.collidepoint(event.pos):
+                    current_volume = max(0.0, current_volume - 0.1)  # Зменшуємо гучність, мінімум 0.0
+                    bg_sound.set_volume(current_volume)
+                if button_toggle_mute.collidepoint(event.pos):
+                    if is_muted:
+                        bg_sound.set_volume(current_volume)  # Відновлюємо попередню гучність
+                        is_muted = False
+                    else:
+                        bg_sound.set_volume(0)  # Вимикаємо звук
+                        is_muted = True
+                if button_back.collidepoint(event.pos):
+                    running = False
+
+        pygame.display.flip()
+
+# Меню настроек видео
+def video_settings_menu():
+    button_width, button_height = WIDTH // 2, 50
+    button_8 = pygame.Rect((WIDTH - button_width) // 2, HEIGHT // 3, button_width, button_height)
+    button_9 = pygame.Rect((WIDTH - button_width) // 2, HEIGHT // 3 + 70, button_width, button_height)
+    button_10 = pygame.Rect((WIDTH - button_width) // 2, HEIGHT // 3 + 140, button_width, button_height)
+    button_11 = pygame.Rect((WIDTH - button_width) // 2, HEIGHT // 3 + 210, button_width, button_height)
+    running = True
+    while running:
+        screen.fill(WHITE)
+        screen.blit(main_background, (0, -1))
+        draw_text('Video Settings', font, BLACK, screen, WIDTH // 2, HEIGHT // 10)
+
+        pygame.draw.rect(screen, BLACK, button_8)
+        pygame.draw.rect(screen, BLACK, button_9)
+        pygame.draw.rect(screen, BLACK, button_10)
+        pygame.draw.rect(screen, BLACK, button_11)
+
+        draw_text('960x600', font, WHITE, screen, button_8.centerx, button_8.centery)
+        draw_text('1280x800', font, WHITE, screen, button_9.centerx, button_9.centery)
+        draw_text('Full HD', font, WHITE, screen, button_10.centerx, button_10.centery)
+        draw_text('Quit', font, WHITE, screen, button_11.centerx, button_11.centery)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    fade()
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if button_8.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    video_mode(960, 600)
+                    running = False
+                if button_9.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    video_mode(1280, 800)
+                    running = False
+                if button_10.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    video_mode(1920, 1080, pygame.FULLSCREEN)
+                    running = False
+                if button_11.collidepoint(event.pos):
+                    fade()
+                    button_sound.play()
+                    running = False
+
+        pygame.display.flip()
+
+
+# Меню настроек управления
+def control_settings_menu():
+    control_keys = {
+        "Move Left": pygame.K_a,
+        "Move Right": pygame.K_d,
+        "Jump": pygame.K_SPACE,
+        "reload": pygame.K_e,
+        "restore HP": pygame.K_r,
+        "restart": pygame.K_t,
+
+    }
+
+    selected_key = None
+    button_width, button_height = WIDTH // 3, 60
+    button_back = pygame.Rect((WIDTH - button_width) // 2, HEIGHT // 3 + 300, button_width, button_height)
+    running = True
+
+    while running:
+        screen.fill(WHITE)
+        screen.blit(main_background, (0, -1))
+        draw_text('Control Settings', font, BLACK, screen, WIDTH // 2, HEIGHT // 10)
+
+        # Отображение текущих настроек управления
+        for i, (action, key) in enumerate(control_keys.items()):
+            key_name = pygame.key.name(key)  # Получаем название клавиши
+            draw_text(f'{action}: {key_name}', font, BLACK, screen, WIDTH // 2, HEIGHT // 5 + i * 70)
+
+        # Кнопка назад
+        pygame.draw.rect(screen, BLACK, button_back)
+        draw_text('Quit', font, WHITE, screen, button_back.centerx, button_back.centery)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if selected_key:  # Если выбрана клавиша для переназначения
+                    control_keys[selected_key] = event.key  # Обновляем клавишу
+                    selected_key = None
+                elif event.key == pygame.K_ESCAPE:
+                    fade()
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for i, action in enumerate(control_keys.keys()):
+                    text_rect = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 5 + i * 70 - 30, 200, 60)
+                    if text_rect.collidepoint(event.pos):
+                        selected_key = action  # Выбор действия для переназначения
+                if button_back.collidepoint(event.pos):
+                    fade()
+                    running = False
+
+        pygame.display.flip()
+
+# Эффект затемнения
+def fade():
+    running = True
+    fade_alpha = 0
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        fade_surface = pygame.Surface((WIDTH, HEIGHT))
+        fade_surface.fill((0, 0, 0))
+        fade_surface.set_alpha(fade_alpha)
+        screen.blit(fade_surface, (0, 0))
+        fade_alpha += 5
+        if fade_alpha >= 200:
+            fade_alpha = 255
+            running = False
+        pygame.display.flip()
+        clock.tick(MAX_FPS)
+
+
+# Функция изменения режима видео и загрузки соответствующего фона
+def video_mode(w, h, fullscreen=None):
+    global WIDTH, HEIGHT, screen, main_background
+    WIDTH, HEIGHT = w, h
+    if fullscreen:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT), fullscreen)
+    else:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    # Загрузка фонового изображения в зависимости от разрешения
+    if WIDTH == 960 and HEIGHT == 600:
+        main_background = pygame.image.load("images/beckgraund960x600.jpg")
+    elif WIDTH == 1280 and HEIGHT == 800:
+        main_background = pygame.image.load("images/beckgraund1280x800.jpg")
+    elif WIDTH == 1920 and HEIGHT == 1080:
+        main_background = pygame.image.load("images/beckgraund1920x1080.jpg")
+    else:
+        main_background = pygame.image.load("images/beckgraund2.jpg")
+
+
+
+# Класс для пуль
+class Bullet:
+    def __init__(self, x, y, direction, speed=10, is_enemy_bullet=False, bullet_type="normal"):
+        self.x = x
+        self.y = y
+        self.speed = speed
+        self.direction = direction
+        self.is_enemy_bullet = is_enemy_bullet
+        bulet.play()
+
+        # Устанавливаем изображение пули в зависимости от типа
+        if bullet_type == "laser":
+            self.image = pygame.transform.scale(bulet_Laser, (40, 10))  # Лазерный патрон
+        else:
+            self.image = pygame.transform.scale(pygame.image.load("images/bullet2.png").convert_alpha(), (20, 10))
+
+    def move(self):
+        if self.direction == 'right':
+            self.x += self.speed
+        else:
+            self.x -= self.speed
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+    def off_screen(self):
+        return self.x < 0 or self.x > WIDTH
+
+    def hit_enemy(self, enemy):
+        return enemy.x < self.x < enemy.x + PLAYER_WIDTH and enemy.y < self.y < enemy.y + PLAYER_HEIGHT
+
+    def hit_player(self, player_x, player_y):
+        return player_x < self.x < player_x + PLAYER_WIDTH and player_y < self.y < player_y + PLAYER_HEIGHT
+
+
+# Класс врага типа 1
+class EnemyType1:
+    def __init__(self):
+        self.x = WIDTH + random.randint(50, 300)
+        self.y = 590
+        self.speed = 5
+        self.anim_count = 0
+        self.hp = 3  # Количество жизней врага
+        robot_sound.play()
+    def move(self):
+        self.x -= self.speed
+
+    def draw(self, screen):
+        if self.anim_count >= len(robot_anim1):
+            self.anim_count = 0
+        screen.blit(robot_anim1[self.anim_count], (self.x, self.y))
+        self.anim_count += 1
+
+    def off_screen(self):
+        return self.x < -50
+
+    def hit(self):
+        self.hp -= 1
+        return self.hp <= 0
+
+# Класс врага типа 2
+
+class EnemyType2:
+    def __init__(self):
+        self.x = WIDTH + random.randint(50, 300)
+        self.y = 590
+        self.speed = 7
+        self.anim_count = 0
+        self.hp = 2  # У второго врага меньше здоровья
+        self.shoot_timer = 0  # Таймер для стрельбы
+        robot_sound.play()
+    def move(self):
+        self.x -= self.speed
+
+    def draw(self, screen):
+        if self.anim_count >= len(robot_anim2):
+            self.anim_count = 0
+        screen.blit(robot_anim2[self.anim_count], (self.x, self.y))
+        self.anim_count += 1
+
+    def off_screen(self):
+        return self.x < -50
+
+    def hit(self):
+        self.hp -= 1
+        return self.hp <= 0
+
+    def shoot(self, bullets):
+        if self.shoot_timer <= 0:  # Если прошло достаточно времени для стрельбы
+            bullet_x = self.x
+            bullet_y = self.y + PLAYER_HEIGHT // 2
+            bullets.append(Bullet(bullet_x, bullet_y, 'left', speed=12, is_enemy_bullet=True, bullet_type="laser"))
+            self.shoot_timer = 60  # Таймер стрельбы
+        else:
+            self.shoot_timer -= 1
+
+
+# Начальные параметры
+bg_speed = 2
+player_speed = 5
+player_x = 100
+player_y = 590
+player_direction = 'right'
+is_jumping = False
+jump_speed = 18
+gravity = 1
+vertical_velocity = 0
+bullets = []  # Список для пуль
+ammo = 10  # Количество патронов
+reload_time = 2000  # Время перезарядки в миллисекундах
+last_reload_time = 0  # Время последней перезарядки
+is_reloading = False  # Флаг перезарядки
+player_hp = 5  # Количество жизней игрока
+coins = 0
+
+
+
+LEFT_BOUNDARY = 50
+RIGHT_BOUNDARY = WIDTH - 500
+
+animation_speed = 5
+animation_counter = 0
+
+# Список врагов
+enemies = []
+spawn_delay = 200
+enemy_timer = 10
+
+game_over = False  # Флаг состояния игры
+
+# Инициализация счётчика уничтоженных врагов
+destroyed_robots = 0
+win_condition = 10  # Количество уничтоженных роботов для победы
+
+def game():
+    global bg_speed, player_speed, player_x, player_y, player_direction, is_jumping, jump_speed, gravity, vertical_velocity
+    global ammo, reload_time, last_reload_time, is_reloading, player_hp, coins, enemy_timer, animation_counter, player_anim_count, bg_x
+    global game_over, destroyed_robots
+
+    bullets = []
+    enemies = []
+    paused = False  # Флаг паузы
+    bg_music_paused = False  # Флаг состояния музыки
+
+    # Основной игровой цикл
+    running = True
+    while running:
+        clock.tick(MAX_FPS)
+
+        # Заполнение экрана черным цветом для предотвращения мерцания
+        screen.fill((0, 0, 0))
+
+        # Обработка событий
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
+
+            # Проверка нажатия клавиши 'Q' для возвращения в меню
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                bg_game.stop()  # Остановите фоновую музыку игры
+                robot_sound.stop()
+                bg_sound.play()
+
+                return  # Возврат к главному меню
+
+            # Нажатие клавиши Escape для установки паузы
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                paused = not paused  # Переключение состояния паузы
+
+                # Остановка/возобновление фоновой музыки при паузе
+                if paused and not bg_music_paused:
+                    bg_game.stop()  # Останавливаем музыку
+                    bg_music_paused = True
+                elif not paused and bg_music_paused:
+                    bg_game.play(-1)  # Возобновляем воспроизведение музыки
+                    bg_music_paused = False
+
+
+            if not paused:  # Управление и события внутри паузы не обрабатываются
+                # Стрельба
+                if event.type == pygame.MOUSEBUTTONDOWN and ammo > 0 and not is_reloading:
+                    if event.button == 1:
+                        bullet_x = player_x + (PLAYER_WIDTH if player_direction == 'right' else 0)
+                        bullet_y = player_y + PLAYER_HEIGHT // 2
+                        bullets.append(Bullet(bullet_x, bullet_y, player_direction))
+                        ammo -= 1
+
+                # Начало перезарядки
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_e and not is_reloading:
+                    is_reloading = True
+                    buletreload.play()
+                    last_reload_time = pygame.time.get_ticks()
+
+                # Покупка здоровья за монеты
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    if coins > 0 and player_hp < 5:
+                        coins -= 1
+                        player_hp += 1
+                        hp_plus.play()
+
+        if paused:  # Если игра на паузе, отображаем сообщение и переходим к следующему кадру
+            # Отображаем изображение паузы
+            screen.blit(pauseimg, (WIDTH // 2 - pauseimg.get_width() // 2, HEIGHT // 2 - pauseimg.get_height() // 2))
+
+            pause_text = pygame.font.Font("fonts/boozy-2.ttf", 74).render("PAUSE. PRESS ESCAPE TO CONTINUE  ", True, (105, 105, 105))
+            screen.blit(pause_text,
+                        (WIDTH // 2 - pause_text.get_width() // 2, HEIGHT // 2 - pause_text.get_height() // 2))
+            pygame.display.flip()  # Обновляем экран с текстом "PAUSE"
+            continue  # Пропускаем все обновления и рендеринг для этого кадра
+
+
+
+        # Управление персонажем
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            player_x -= player_speed
+            player_direction = 'left'
+        if keys[pygame.K_d]:
+            player_x += player_speed
+            player_direction = 'right'
+
+        if player_x < LEFT_BOUNDARY:
+            player_x = LEFT_BOUNDARY
+        if player_x > RIGHT_BOUNDARY:
+            player_x = RIGHT_BOUNDARY
+
+        # Прыжок
+        if not is_jumping:
+            if keys[pygame.K_SPACE]:
+                is_jumping = True
+                vertical_velocity = -jump_speed
+        else:
+            pryjok.play()
+            player_y += vertical_velocity
+            vertical_velocity += gravity
+            if player_y >= 590:
+                player_y = 590
+                is_jumping = False
+
+        # Движение фона
+        bg_x -= bg_speed
+        if bg_x <= -1200:
+            bg_x = 0
+
+        # Спавн врагов
+        enemy_timer += 1
+        if enemy_timer >= spawn_delay:
+            if random.randint(0, 1) == 0:
+                enemies.append(EnemyType1())
+            else:
+                enemies.append(EnemyType2())
+            enemy_timer = 0
+
+        # Движение врагов
+        for enemy in enemies[:]:
+            enemy.move()
+            if isinstance(enemy, EnemyType2):
+                enemy.shoot(bullets)
+            if enemy.off_screen():
+                enemies.remove(enemy)
+
+        # Движение пуль
+        for bullet in bullets[:]:
+            bullet.move()
+            if bullet.off_screen():
+                bullets.remove(bullet)
+
+                # Проверка попадания пули во врага
+
+            for bullet in bullets[:]:
+                if not bullet.is_enemy_bullet:  # Пули игрока
+                    for enemy in enemies[:]:
+                        if bullet.hit_enemy(enemy):
+                            if enemy.hit():
+                                # Увеличиваем счётчик уничтоженных врагов
+                                destroyed_robots += 1
+                                # Проверка условия победы
+                                if destroyed_robots >= win_condition:
+                                    game_over = True
+                                    Victory.play()  # Проигрываем звук победы
+                                    bg_sound.stop()  # Останавливаем фоновую музыку
+
+                                # Ограничение на максимальное количество монет
+                                if coins < 5:  # Воспроизводим звук, если не достигли лимита
+                                    coinmusic.play()
+                                    coins += 1  # Начисляем монету только если лимит не превышен
+                                enemies.remove(enemy)
+                            bullets.remove(bullet)
+                            break
+
+                # Проверка победы
+            if destroyed_robots >= win_condition:
+                game_over = True
+                Victory.play()  # Проигрываем звук победы
+                bg_game.stop()
+                # Экран победы
+                screen.fill((0, 0, 0))  # Черный фон
+                screen.blit(Victory_img,
+                            (WIDTH // 2 - Victory_img.get_width() // 2, HEIGHT // 2 - Victory_img.get_height() // 2))
+                pygame.display.update()  # Обновляем экран, чтобы отобразить "Victory"
+
+                # Ждём завершения или перезапуска игры
+                waiting_for_restart = True
+                while waiting_for_restart:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
+                            waiting_for_restart = False
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_t:  # Нажмите T для перезапуска
+                            # Сброс всех параметров для перезапуска игры
+                            player_x = 100
+                            player_y = 590
+                            player_hp = 5
+                            ammo = 10
+                            coins = 0
+                            destroyed_robots = 0
+                            enemies.clear()
+                            bullets.clear()
+                            bg_sound.play()
+                            game_over = False
+                            waiting_for_restart = False
+
+        # Проверка столкновений врага с игроком
+        for enemy in enemies[:]:
+            if enemy.x < player_x + PLAYER_WIDTH and enemy.x + PLAYER_WIDTH > player_x and enemy.y < player_y + PLAYER_HEIGHT and enemy.y + PLAYER_HEIGHT > player_y:
+                player_hp -= 1
+                enemies.remove(enemy)
+                hitrobot.play()
+
+                if player_hp <= 0:  # Если здоровье игрока становится 0 или меньше
+                    game_over = True  # Устанавливаем флаг окончания игры
+                    bg_game.stop()  # Останавливаем фоновую музыку при проигрыше
+                    lose.play()  # Проигрываем звук проигрыша
+                    robot_sound.stop()
+
+        # Проверка попадания в игрока пули врага
+        for bullet in bullets[:]:
+            if bullet.is_enemy_bullet and bullet.hit_player(player_x, player_y):
+                player_hp -= 1
+                bullets.remove(bullet)
+
+                if player_hp <= 0:  # Если здоровье игрока становится 0 или меньше
+                    game_over = True  # Устанавливаем флаг окончания игры
+                    bg_game.stop()  # Останавливаем фоновую музыку при проигрыше
+                    lose.play()  # Проигрываем звук проигрыша
+                    robot_sound.stop()
+
+        if game_over:
+            # Отображаем экран проигрыша
+            screen.fill((0, 0, 0))  # Черный фон
+            # Отображение изображения "Game Over"
+            screen.blit(Game_over, (WIDTH // 2 - Game_over.get_width() // 2, HEIGHT // 2 - Game_over.get_height() // 2))
+            pygame.display.update()  # Немедленно обновляем экран, чтобы показать "Game Over"
+
+            # Ждем завершения или перезапуска игры
+            waiting_for_restart = True
+            while waiting_for_restart:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                        waiting_for_restart = False
+                        pygame.quit()
+                        sys.exit()
+
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_t:  # Нажмите T для перезапуска
+                        # Сбрасываем все параметры для перезапуска игры
+                        player_x = 100
+                        player_y = 590
+                        player_hp = 5  # Восстанавливаем здоровье игрока
+                        ammo = 10  # Восстанавливаем патроны
+                        coins = 0  # Сбрасываем монеты
+                        enemies.clear()  # Очищаем список врагов
+                        bullets.clear()  # Очищаем список пуль
+                        bg_sound.play()  # Включаем фоновую музыку
+                        game_over = False  # Сбрасываем флаг окончания игры
+                        waiting_for_restart = False  # Выходим из цикла ожидания
+
+        # Обработка перезарядки
+        if is_reloading:
+            current_time = pygame.time.get_ticks()
+            if current_time - last_reload_time >= reload_time:
+                ammo = 10
+                is_reloading = False
+
+        # Отрисовка фона
+        screen.blit(bg, (bg_x, 0))
+        screen.blit(bg, (bg_x + 1200, 0))
+
+        # Анимация персонажа
+        animation_counter += 1
+        if animation_counter >= animation_speed:
+            player_anim_count += 1
+            animation_counter = 0
+
+        if player_anim_count >= len(walk_right):
+            player_anim_count = 0
+
+        # Отрисовка персонажа
+        if player_direction == 'right':
+            screen.blit(walk_right[player_anim_count], (player_x, player_y))
+        else:
+            screen.blit(walk_left[player_anim_count], (player_x, player_y))
+
+        # Отрисовка врагов
+        for enemy in enemies:
+            enemy.draw(screen)
+
+        # Отрисовка пуль
+        for bullet in bullets:
+            bullet.draw(screen)
+
+        # Отображение количества патронов и жизней игрока
+        for i in range(ammo):
+            screen.blit(pygame.transform.scale(icin_bullet, (30, 30)), (10 + i * 40, 10))
+
+        for i in range(player_hp):
+            screen.blit(pygame.transform.scale(hp_image, (90, 90)), (10 + i * 40, 40))
+
+        # Ограничение на количество монет при отрисовке
+        max_coins = min(coins, 5)
+        for i in range(max_coins):
+            screen.blit(pygame.transform.scale(coin, (40, 40)), (10 + i * 40, 110))
+
+        # Обновление экрана
+        pygame.display.update()
+
+# Запуск главного меню
+main_menu()
